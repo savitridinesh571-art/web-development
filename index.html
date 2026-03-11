@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Development Club | SLRTCE</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #38bdf8;
+    --sky-dim: rgba(56,189,248,0.15);
+    --sky-glow: rgba(56,189,248,0.4);
+    --bg: #030712;
+    --surface: rgba(15,23,42,0.7);
+    --surface2: rgba(30,41,59,0.6);
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent2: #818cf8;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  /* ── CANVAS BACKGROUND ── */
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* ── GRID OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* ── NAVBAR ── */
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 8%;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 100;
+    background: rgba(3,7,18,0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(56,189,248,0.1);
+    transition: background 0.3s;
+  }
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--sky);
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px var(--sky-glow);
+    position: relative;
+  }
+  .logo::before {
+    content: '>';
+    margin-right: 6px;
+    opacity: 0.5;
+    animation: blink 1.2s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .nav-links {
+    display: flex;
+    list-style: none;
+    gap: 10px;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.25s;
+  }
+  .nav-links a:hover {
+    color: var(--sky);
+    border-color: rgba(56,189,248,0.3);
+    background: var(--sky-dim);
+    text-shadow: 0 0 10px var(--sky-glow);
+  }
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 140px 8% 80px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--sky-dim);
+    border: 1px solid rgba(56,189,248,0.3);
+    color: var(--sky);
+    padding: 6px 18px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1.5px;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s ease forwards;
+  }
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--sky);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--sky);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+  .hero h1 {
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s ease forwards;
+  }
+  .hero h1 .line2 {
+    display: block;
+    background: linear-gradient(90deg, var(--sky), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(56,189,248,0.4));
+  }
+  .hero p {
+    max-width: 560px;
+    color: var(--muted);
+    font-size: 1.1rem;
+    font-weight: 300;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s ease forwards;
+  }
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s ease forwards;
+  }
+  .btn-primary {
+    padding: 14px 36px;
+    border: none;
+    border-radius: 8px;
+    background: var(--sky);
+    color: #020617;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.5px;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px var(--sky-glow), 0 8px 25px rgba(0,0,0,0.3); }
+  .btn-primary:hover::after { opacity: 0.1; }
+  .btn-outline {
+    padding: 14px 36px;
+    border: 1px solid rgba(56,189,248,0.35);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--sky);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.25s;
+  }
+  .btn-outline:hover { background: var(--sky-dim); border-color: var(--sky); transform: translateY(-2px); }
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeIn 1s 1.5s forwards;
+  }
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--sky), transparent);
+    animation: scrollAnim 1.5s ease-in-out infinite;
+  }
+  @keyframes scrollAnim { 0%,100%{transform:scaleY(1);opacity:1} 50%{transform:scaleY(0.5);opacity:0.3} }
+  /* ── SECTIONS ── */
+  section {
+    padding: 120px 8%;
+    position: relative;
+    z-index: 1;
+  }
+  .section-header {
+    text-align: center;
+    margin-bottom: 70px;
+  }
+  .section-tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--sky);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    opacity: 0.7;
+  }
+  .section-title {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .section-title span { color: var(--sky); }
+  /* ── CARDS ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  .card {
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(56,189,248,0.1);
+    padding: 36px 30px;
+    border-radius: 16px;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--sky), transparent);
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+  .card:hover {
+    transform: translateY(-10px);
+    border-color: rgba(56,189,248,0.3);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(56,189,248,0.05);
+  }
+  .card:hover::before { opacity: 1; }
+  .card-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--sky-dim);
+    border: 1px solid rgba(56,189,248,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+  .card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .card p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+  /* ── STATS ── */
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2px;
+    background: rgba(56,189,248,0.08);
+    border: 1px solid rgba(56,189,248,0.12);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 80px;
+  }
+  .stat {
+    padding: 36px 20px;
+    text-align: center;
+    background: var(--bg);
+    transition: background 0.3s;
+  }
+  .stat:hover { background: var(--sky-dim); }
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--sky);
+    display: block;
+    text-shadow: 0 0 20px var(--sky-glow);
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 6px;
+    display: block;
+  }
+  /* ── EVENTS ── */
+  #events { background: transparent; }
+  .event-box {
+    max-width: 680px;
+    margin: auto;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  .event-glow {
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(56,189,248,0.12), transparent 70%);
+    pointer-events: none;
+  }
+  .event-header {
+    padding: 28px 40px;
+    border-bottom: 1px solid rgba(56,189,248,0.1);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .event-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: #4ade80;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .event-status .dot {
+    width: 7px; height: 7px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #4ade80;
+    animation: pulse 1.5s infinite;
+  }
+  .event-title-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    padding: 30px 40px 10px;
+    letter-spacing: -0.5px;
+  }
+  .event-meta {
+    padding: 10px 40px 36px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .event-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .event-meta-item .icon {
+    width: 34px; height: 34px;
+    background: var(--sky-dim);
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  /* ── JOIN ── */
+  #join {
+    text-align: center;
+    padding: 140px 8%;
+  }
+  .join-inner {
+    max-width: 640px;
+    margin: auto;
+  }
+  .join-inner p {
+    color: var(--muted);
+    font-size: 1.1rem;
+    font-weight: 300;
+    margin: 20px 0 40px;
+  }
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 36px;
+    background: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(56,189,248,0.08);
+    position: relative;
+    z-index: 1;
+  }
+  footer p {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+  }
+  footer span { color: var(--sky); }
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal:nth-child(2) { transition-delay: 0.1s; }
+  .reveal:nth-child(3) { transition-delay: 0.2s; }
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 0.6; }
+  }
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .nav-links { display: none; }
+    .hero h1 { letter-spacing: -1px; }
+    .event-title-text, .event-header, .event-meta { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <h2 class="logo">WDC SLRTCE</h2>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#activities">Activities</a></li>
+    <li><a href="#events">Events</a></li>
+    <li><a href="#join">Join</a></li>
+  </ul>
+</nav>
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    SLRTCE — Est. 2024
+  </div>
+  <h1>
+    We Build the<br>
+    <span class="line2">Web of Tomorrow</span>
+  </h1>
+  <p>A community of passionate developers building modern websites, mastering cutting-edge tech, and shipping real products together.</p>
+  <div class="hero-cta">
+    <button class="btn-primary" onclick="scrollToSection()">Explore More</button>
+    <button class="btn-outline" onclick="document.getElementById('join').scrollIntoView({behavior:'smooth'})">Join the Club →</button>
+  </div>
+  <div class="hero-scroll">
+    <span>scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</header>
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-header reveal">
+    <span class="section-tag">// about us</span>
+    <h2 class="section-title">What We're <span>About</span></h2>
+  </div>
+  <div class="cards">
+    <div class="card reveal">
+      <div class="card-icon">⚡</div>
+      <h3>Learn Modern Technologies</h3>
+      <p>Master HTML, CSS, JavaScript, React, Node.js and cloud deployment through structured workshops and peer learning.</p>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">🛠️</div>
+      <h3>Build Real Projects</h3>
+      <p>Create meaningful portfolio projects, collaborate with driven developers, and ship work that actually matters.</p>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">🏆</div>
+      <h3>Hackathons</h3>
+      <p>Compete in national hackathons, build under pressure, and walk away with solutions — and sometimes trophies.</p>
+    </div>
+  </div>
+  <div class="stats-strip reveal">
+    <div class="stat">
+      <span class="stat-num" data-target="120">0</span>
+      <span class="stat-label">Members</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" data-target="30">0</span>
+      <span class="stat-label">Projects Built</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" data-target="12">0</span>
+      <span class="stat-label">Workshops</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" data-target="8">0</span>
+      <span class="stat-label">Hackathons</span>
+    </div>
+  </div>
+</section>
+<!-- ACTIVITIES -->
+<section id="activities">
+  <div class="section-header reveal">
+    <span class="section-tag">// what we do</span>
+    <h2 class="section-title">Club <span>Activities</span></h2>
+  </div>
+  <div class="cards">
+    <div class="card reveal">
+      <div class="card-icon">🎓</div>
+      <h3>Workshops</h3>
+      <p>Hands-on sessions where you build something real — from JavaScript fundamentals to full-stack deployments.</p>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">💻</div>
+      <h3>Weekly Coding Meets</h3>
+      <p>Gather every week to code together, debug together, and level up together. No one codes alone here.</p>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">🎤</div>
+      <h3>Tech Talks</h3>
+      <p>Raw insights from industry professionals and senior devs who've shipped production code at scale.</p>
+    </div>
+  </div>
+</section>
+<!-- EVENTS -->
+<section id="events">
+  <div class="section-header reveal">
+    <span class="section-tag">// upcoming</span>
+    <h2 class="section-title">Next <span>Event</span></h2>
+  </div>
+  <div class="event-box reveal">
+    <div class="event-glow"></div>
+    <div class="event-header">
+      <div class="event-status"><span class="dot"></span> Upcoming</div>
+    </div>
+    <div class="event-title-text">Workshop on Website Hosting &amp; DevOps 🚀</div>
+    <div class="event-meta">
+      <div class="event-meta-item">
+        <span class="icon">📅</span>
+        <span>11th March 2026</span>
+      </div>
+      <div class="event-meta-item">
+        <span class="icon">📍</span>
+        <span>SLRTCE Campus</span>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- JOIN -->
+<section id="join">
+  <div class="join-inner">
+    <div class="reveal">
+      <span class="section-tag">// get involved</span>
+      <h2 class="section-title">Ready to <span>Build</span>?</h2>
+      <p>Join a community where developers go from learning to shipping. Seats are limited — don't miss out.</p>
+      <button class="btn-primary" onclick="joinClub()">Join the Club Now →</button>
+    </div>
+  </div>
+</section>
+<footer>
+  <p>© 2026 <span>Web Development Club</span> | SLRTCE</p>
+</footer>
+<script>
+// ── PARTICLE CANVAS ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+function Particle() {
+  this.x = Math.random() * W;
+  this.y = Math.random() * H;
+  this.r = Math.random() * 1.5 + 0.3;
+  this.vx = (Math.random() - 0.5) * 0.3;
+  this.vy = (Math.random() - 0.5) * 0.3;
+  this.alpha = Math.random() * 0.5 + 0.1;
+}
+function initParticles() {
+  particles = [];
+  const count = Math.floor((W * H) / 12000);
+  for (let i = 0; i < count; i++) particles.push(new Particle());
+}
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (let p of particles) {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(56,189,248,${p.alpha})`;
+    ctx.fill();
+  }
+  // Draw faint connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 120) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(56,189,248,${0.06 * (1 - d/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+resize();
+initParticles();
+drawParticles();
+window.addEventListener('resize', () => { resize(); initParticles(); });
+// ── SCROLL REVEAL ──
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.15 });
+reveals.forEach(r => observer.observe(r));
+// ── COUNTER ANIMATION ──
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  let current = 0;
+  const step = target / 60;
+  const timer = setInterval(() => {
+    current += step;
+    if (current >= target) { el.textContent = target + '+'; clearInterval(timer); }
+    else { el.textContent = Math.floor(current); }
+  }, 20);
+}
+const statObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.stat-num[data-target]').forEach(animateCounter);
+      statObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.stats-strip').forEach(s => statObserver.observe(s));
+// ── NAV SCROLL ──
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('.navbar');
+  nav.style.background = window.scrollY > 40
+    ? 'rgba(3,7,18,0.95)'
+    : 'rgba(3,7,18,0.7)';
+});
+// ── ACTIONS ──
+function scrollToSection() {
+  document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
+}
+function joinClub() {
+  alert("Thanks for your interest! Registration will open soon.");
+}
+</script>
+</body>
+</html> comments
+Comments
+0
+ (0)
+0 commit
+Please sign in to comment.
+There are no files selected for viewing
+Copied! 
